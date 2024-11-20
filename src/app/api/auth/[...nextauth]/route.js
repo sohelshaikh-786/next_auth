@@ -97,11 +97,11 @@ export const authOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // Get user from database
-      const user = await User.findOne({ email: session.user.email });
+      // // Get user from database
+      // const user = await User.findOne({ email: session.user.email });
       
-      // Redirect based on user role
-      if (user.role === 'admin') return '/admin-dashboard'
+      // // Redirect based on user role
+      // if (user.role === 'admin') return '/admin-dashboard'
       return '/'
     },
 
