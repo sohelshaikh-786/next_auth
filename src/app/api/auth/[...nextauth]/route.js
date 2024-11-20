@@ -59,23 +59,26 @@ export const authOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async signIn({ user, account, profile, email }) {
+    async signIn({ user, account, profile }) {
       if (account.provider === 'google') {
         try {
           await dbConnect();
           
-          // Check if this Google account email already exists in our DB
+          // Check if this is the first user ever
+          const userCount = await User.countDocuments();
+          const isFirstUser = userCount === 0;
+          
           const existingUser = await User.findOne({ email: user.email });
           
           if (existingUser) {
-            // Allow sign in with Google if user exists
             return true;
           }
           
-          // If user doesn't exist, create new user
+          // Create new user, set as admin if first user
           const newUser = await User.create({
             name: user.name,
             email: user.email,
+            role: isFirstUser ? 'admin' : 'user'
           });
           
           return true;
@@ -84,14 +87,17 @@ export const authOptions = {
           return false;
         }
       }
-
-      // For credentials provider
       return true;
     },
     
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        // Add user role to token
+        const dbUser = await User.findOne({ email: user.email });
+        if (dbUser) {
+          token.role = dbUser.role;
+        }
       }
       return token;
     },
@@ -104,10 +110,10 @@ export const authOptions = {
       // if (user.role === 'admin') return '/admin-dashboard'
       return '/'
     },
-
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id;
+        session.user.role = token.role; // Add role to session
       }
       return session;
     }
