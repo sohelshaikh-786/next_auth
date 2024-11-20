@@ -38,6 +38,6 @@ const Button = forwardRef(function Button(
   ) : (
     <button ref={ref} className={className} {...props} />
   )
-})
+})  
 
 export default Button
